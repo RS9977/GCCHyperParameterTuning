@@ -1,5 +1,6 @@
 import pickle
 import numpy as np
+import os
 
 
 def compute_mean_and_filter(data_list):
@@ -53,3 +54,16 @@ def are_files_equal(binaries, curFile):
             return curContent, False
     except FileNotFoundError:
         return curContent, False
+
+def delete_files_with_extension(directory, extension):
+    # Get a list of all files in the directory
+    files = [f for f in os.listdir(directory) if os.path.isfile(os.path.join(directory, f))]
+    
+    # Iterate over the files
+    for file_name in files:
+        # Check if the file has the specified extension
+        if file_name.endswith(extension):
+            # Construct the full path of the file
+            file_path = os.path.join(directory, file_name)
+            # Delete the file
+            os.remove(file_path)
