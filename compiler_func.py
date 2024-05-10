@@ -56,17 +56,22 @@ def parse_gcc_params(output, best_param, i, numIter, alpha=15, beta=30):
 
     return params
 
-def compile_with_gcc(gcc_params, selected_indices, opt, i=-1, optTarget=2, output_binary="SWAVX_tuned", flto=0):
+def compile_with_gcc(gcc_params, selected_indices, opt, i=-1, optTarget=2, output_binary="output", flto=0, compile_args=''):
     try:
         # Build the GCC command with parameters   
         param_cnt = 0
             
         if flto:
-            gcc_command1 = ["gcc", opt, "-mavx2", "-flto", "-fsave-optimization-record", "-D", "L8", "-lpthread", "SWAVX_utils.c", "SWAVX_SubMat.c", "SWAVX_TOP_datasets_MultiThread.c", "SWAVX_256_Func_SeqToSeq_SubMat.c", "-o", output_binary]
+            gcc_command1 = ["gcc", opt, "-flto", "-fsave-optimization-record", "-o", output_binary]
         else:
-            gcc_command1 = ["gcc", opt, "-mavx2", "-D", "L8", "-D", "SUBMAT", "-lpthread", "SWAVX_utils.c", "SWAVX_SubMat.c", "SWAVX_TOP_datasets_MultiThread.c", "SWAVX_256_Func_SeqToSeq_SubMat.c", "-o", output_binary]
-            gcc_command2 = ["gcc", opt, "-mavx2", "-D", "L8", "-D", "SUBMAT", "-lpthread", "SWAVX_utils.c", "SWAVX_SubMat.c", "SWAVX_TOP_datasets_MultiThread.c", "SWAVX_256_Func_SeqToSeq_SubMat.c", "-S"]
-            
+            gcc_command1 = ["gcc", opt, "-o", output_binary]
+            gcc_command2 = ["gcc", opt, "-S"]
+        
+        for cmd in compile_args.split():
+            gcc_command1.append(cmd)
+            if not flto:
+                gcc_command2.append(cmd)
+        
         for param_name, param_value in gcc_params.items():
             if param_cnt not in selected_indices:
                 continue

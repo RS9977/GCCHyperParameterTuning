@@ -4,8 +4,17 @@ from benchmarks import *
 
 import multiprocessing
 
-def main(optTarget=1, numPar=260, numStop=3, numIter=50, numTest=5, NumOfThreads=32, alpha=30, beta=50, Par_Val=0, output_binary = "SWAVX_tuned", flto=0, optPass='-O3'):
-    print(f"Result calculated for:\nalpha: {alpha},\tbeta: {beta},\tnumIter:{numIter},\tnumPar: {numPar},\tnumTest: {numTest},\tnumThreads: {NumOfThreads},\tflto: {flto},\toptTarget: {optTarget},\toptPass: {optPass}")
+def main(filename='', args='', compile_args='', optTarget=1, Par=[], output_binary = "tuned", flto=0, optPass='-O3'):
+    if len(Par)!=7:
+        Par = [260, 3, 50, 5, 30, 50, 0]
+    numPar=Par[0]
+    numStop=Par[1]
+    numIter=Par[2]
+    numTest=Par[3]
+    alpha=Par[4]
+    beta=Par[5]
+    Par_Val=Par[6]
+    print(f"Result calculated for:\nalpha: {alpha},\tbeta: {beta},\tnumIter:{numIter},\tnumPar: {numPar},\tnumTest: {numTest},\tflto: {flto},\toptTarget: {optTarget},\toptPass: {optPass}")
     print("---------------------------------------------\n")
     
     try:                
@@ -20,10 +29,10 @@ def main(optTarget=1, numPar=260, numStop=3, numIter=50, numTest=5, NumOfThreads
             selected_indices_min   = []
             gcc_params_min         = {}
             cycles_pre             = []
-        compile_with_gcc(gcc_params_min, selected_indices_min, "-O3", -1, optTarget, output_binary=output_binary, flto=flto)    
-        GCUPS_max_main = get_gcups_from_command(f"./{output_binary} 'test2.fasta' 'test4.fasta' {NumOfThreads}", numTest*5)
-        GCUPS_max = get_gcups_from_command(f"./{output_binary} 'test2.fasta' 'test3.fasta' 1", numTest*10)
-        GCUPS_max_main = get_gcups_from_command(f"./{output_binary} 'test2.fasta' 'test4.fasta' {NumOfThreads}", numTest*10)
+        compile_with_gcc(compile_args= compile_args, gcc_params=gcc_params_min, selected_indices=selected_indices_min, opt="-O3", i=-1, optTarget=optTarget, output_binary=output_binary, flto=flto)    
+        GCUPS_max_main = get_gcups_from_command(f"./{output_binary} {args}", numTest*5)
+        GCUPS_max = get_gcups_from_command(f"./{output_binary} {args}", numTest*10)
+        GCUPS_max_main = get_gcups_from_command(f"./{output_binary} {args}", numTest*10)
         if not flto:
             cycles_min = get_asm_info('./')
             instruction_count, total_instructions_min = count_instructions_in_directory('./')
@@ -86,7 +95,7 @@ def main(optTarget=1, numPar=260, numStop=3, numIter=50, numTest=5, NumOfThreads
                 selected_indices = random.sample(range(0, 270), numPar)
                 selected_indices.sort()
                 # Use apply_async to run the function in a separate process
-                result = pool.apply_async(compile_with_gcc, (gcc_params, selected_indices, optPass, i, optTarget, output_binary, flto))
+                result = pool.apply_async(compile_with_gcc, (gcc_params, selected_indices, optPass, i, optTarget, output_binary, flto, compile_args))
 
                 result_value = 0
                 try:
@@ -118,9 +127,9 @@ def main(optTarget=1, numPar=260, numStop=3, numIter=50, numTest=5, NumOfThreads
                                 cycles_pre.append(cycles)
                             else:
                                 binaries.append(preBinary)     
-                            gcups = get_gcups_from_command(f"./{output_binary} 'test2.fasta' 'test3.fasta' 1", numTest)
+                            gcups = get_gcups_from_command(f"./{output_binary}  {args}", numTest)
                             if (gcups-GCUPS_max)/GCUPS_max>0.005:
-                                gcups_main = get_gcups_from_command(f"./{output_binary} 'test2.fasta' 'test4.fasta' {NumOfThreads}", numTest*10)
+                                gcups_main = get_gcups_from_command(f"./{output_binary}  {args}", numTest*10)
                                 if  gcups_main > GCUPS_max_main:
                                     #gcups = get_gcups_from_command(f"./{output_binary} 'test2.fasta' 'test3.fasta' 1", numTest*10)
                                     #if gcups > GCUPS_max:
@@ -185,11 +194,11 @@ def main(optTarget=1, numPar=260, numStop=3, numIter=50, numTest=5, NumOfThreads
                                 binaries.append(preBinary) 
                             size = get_size_info(output_binary)
                             if size < Size_min:    
-                                gcups = get_gcups_from_command(f"./{output_binary} 'test2.fasta' 'test3.fasta' 1", numTest)
+                                gcups = get_gcups_from_command(f"./{output_binary} {args}", numTest)
                                 if (gcups-GCUPS_max)/GCUPS_max>0.005:
-                                    gcups_main = get_gcups_from_command(f"./{output_binary} 'test2.fasta' 'test4.fasta' {NumOfThreads}", numTest*10)
+                                    gcups_main = get_gcups_from_command(f"./{output_binary} {args}", numTest*10)
                                     if  gcups_main > GCUPS_max_main:
-                                        gcups = get_gcups_from_command(f"./{output_binary} 'test2.fasta' 'test3.fasta' 1", numTest*10)
+                                        gcups = get_gcups_from_command(f"./{output_binary} {args}", numTest*10)
                                         if gcups > GCUPS_max:
                                             if not flto:
                                                 print(f"(j: {j}, i: {i}),   {cycles} :=>\t({Size_min} -> {size})\t({GCUPS_max:.4f} -> {gcups:.4f}),\t({GCUPS_max_main:.4f} -> {gcups_main:.4f})")
@@ -215,9 +224,9 @@ def main(optTarget=1, numPar=260, numStop=3, numIter=50, numTest=5, NumOfThreads
                             save_dictionary_to_file([gcc_params_min,selected_indices_min, cycles_pre],'Par_Val_temp')
         print("---------------------------------------------\n")
         print('With Tuning:')
-        compile_with_gcc(gcc_params_min, selected_indices_min, optPass, -1, optTarget, output_binary=output_binary, flto=flto)    
-        GCUPS_max = get_gcups_from_command(f"./{output_binary} 'test2.fasta' 'test3.fasta' 1", numTest*10)
-        GCUPS_max_main = get_gcups_from_command(f"./{output_binary} 'test2.fasta' 'test4.fasta' {NumOfThreads}", numTest*10)
+        compile_with_gcc(gcc_params_min, selected_indices_min, optPass, -1, optTarget, output_binary=output_binary, flto=flto, compile_args=compile_args)    
+        GCUPS_max = get_gcups_from_command(f"./{output_binary} {args}", numTest*10)
+        GCUPS_max_main = get_gcups_from_command(f"./{output_binary} {args}", numTest*10)
         if not flto:
             cycles_min = get_asm_info('./')
             instruction_count, total_instructions_min = count_instructions_in_directory('./')
@@ -242,4 +251,13 @@ def main(optTarget=1, numPar=260, numStop=3, numIter=50, numTest=5, NumOfThreads
         print(e.output)
 
 if __name__ == "__main__":
-    main(optTarget=1, numPar=255, numStop=5, numIter=70, numTest=5, NumOfThreads=28, alpha=30, beta=30, Par_Val=0, output_binary="SWAVX_tuned", flto=0, optPass='-O3')
+    numPar=255 
+    numStop=5
+    numIter=70
+    numTest=5
+    alpha=30
+    beta=30
+    Par_Val=0
+    Par = [numPar, numStop, numIter, numTest, alpha, beta, Par_Val]
+    main(compile_args='-I polybench-c-3.2/utilities -I polybench-c-3.2/linear-algebra/kernels/atax polybench-c-3.2/utilities/polybench.c polybench-c-3.2/linear-algebra/kernels/atax/atax.c -DPOLYBENCH_TIME', optTarget=4, Par=Par, output_binary="tuned", flto=0, optPass='-O3')
+

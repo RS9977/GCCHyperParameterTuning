@@ -1,10 +1,8 @@
-
-import pickle
 import glob
 import re
-import re
-import random
-
+import os
+import subprocess
+from utils import *
 
 def get_gcups_from_command(command, numIter):
     GCUPS = []
@@ -15,9 +13,10 @@ def get_gcups_from_command(command, numIter):
             # Check if the command was successful (return code 0)
             if result.returncode == 0:
                 # Search for the line containing "GCUPS: <number>"
-                match = re.search(r'GCUPS:\s+(\d+\.\d+)', result.stdout)
+                match = re.search(r'(\d+\.\d+)', result.stdout)
                 if match:
                     gcups = float(match.group(1))
+                    gcups = 1.0/gcups
                     GCUPS.append(gcups)
                 else:
                     return None  # No matching line found
@@ -77,7 +76,7 @@ def get_asm_info(input_directory):
     # Find all "*.s" files in the input directory
     s_files = glob.glob(input_directory + "/*.s")
     #s_files = ['./SWAVX_256_Func_SeqToSeq_SubMat.s']
-    s_files.remove('./SWAVX_SubMat.s')
+    
     for s_file in s_files:
         command = f"llvm-mca {s_file}"
         
