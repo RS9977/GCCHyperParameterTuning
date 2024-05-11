@@ -195,17 +195,17 @@ def tuner(func='', dir='./', args='', compile_args='', optTarget=1, Par=[], outp
                                 if (gcups-GCUPS_max)/GCUPS_max>0.005:
                                     gcups_main = get_gcups_from_command(f"./{output_binary} {args}", numTest*10)
                                     if  gcups_main > GCUPS_max_main:
-                                        gcups = get_gcups_from_command(f"./{output_binary} {args}", numTest*10)
-                                        if gcups > GCUPS_max:
-                                            if not flto:
-                                                print(f"(j: {j}, i: {i}),   {cycles} :=>\t({Size_min} -> {size})\t({GCUPS_max:.4f} -> {gcups:.4f}),\t({GCUPS_max_main:.4f} -> {gcups_main:.4f})")
-                                            else:
-                                                print(f"(j: {j}, i: {i}) :=>\t({Size_min} -> {size})\t({GCUPS_max:.4f} -> {gcups:.4f}),\t({GCUPS_max_main:.4f} -> {gcups_main:.4f})")
-                                            GCUPS_max = gcups
-                                            GCUPS_max_main = gcups_main
-                                            gcc_params_min = gcc_params
-                                            selected_indices_min = selected_indices
-                                            save_dictionary_to_file([gcc_params_min,selected_indices_min, cycles_pre],'Par_Val_temp')
+                                        #gcups = get_gcups_from_command(f"./{output_binary} {args}", numTest*10)
+                                        #if gcups > GCUPS_max:
+                                        if not flto:
+                                            print(f"(j: {j}, i: {i}),   {cycles} :=>\t({Size_min} -> {size})\t({GCUPS_max:.4f} -> {gcups:.4f}),\t({GCUPS_max_main:.4f} -> {gcups_main:.4f})")
+                                        else:
+                                            print(f"(j: {j}, i: {i}) :=>\t({Size_min} -> {size})\t({GCUPS_max:.4f} -> {gcups:.4f}),\t({GCUPS_max_main:.4f} -> {gcups_main:.4f})")
+                                        GCUPS_max = gcups
+                                        GCUPS_max_main = gcups_main
+                                        gcc_params_min = gcc_params
+                                        selected_indices_min = selected_indices
+                                        save_dictionary_to_file([gcc_params_min,selected_indices_min, cycles_pre],'Par_Val_temp')
 
 
                     else:
