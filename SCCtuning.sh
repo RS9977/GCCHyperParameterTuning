@@ -3,6 +3,7 @@
 #$ -l h_rt=06:00:00 
 #$ -N GCC_PARAM 
 #$ -P caad
+#$ -pe omp 8
 
 module load gcc/11
 
