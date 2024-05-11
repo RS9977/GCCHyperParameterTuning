@@ -24,7 +24,7 @@ if __name__ == "__main__":
                 compile_args = f"-I ../../polybench-c-3.2/utilities -I ../../polybench-c-3.2/linear-algebra/kernels/{func} ../../polybench-c-3.2/utilities/polybench.c ../../polybench-c-3.2/linear-algebra/kernels/{func}/{func}.c -DPOLYBENCH_TIME"
                 if func == 'cholesky':
                     compile_args += ' -lm'
-                tuner(func=func, compile_args=compile_args, dir=dir, optTarget=5, Par=Par, output_binary="tuned_"+func, flto=0, optPass='-O3')
+                tuner(func=func, compile_args=compile_args, dir=dir, optTarget=1, Par=Par, output_binary="tuned_"+func, flto=0, optPass='-O3')
                 change_directory('../../')
             except:
                 print(f"Unable to optimize {func}")

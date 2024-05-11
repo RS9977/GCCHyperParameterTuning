@@ -11,5 +11,5 @@ module load llvm/16.0.6
 
 module load python3
 
-python3 train.py
+python3 train_multicore.py
 
