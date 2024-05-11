@@ -2,6 +2,8 @@ import pickle
 import numpy as np
 import os
 
+import shutil
+
 
 def compute_mean_and_filter(data_list):
     # Convert the input list to a NumPy array for efficient operations
@@ -79,7 +81,8 @@ def create_or_clear_directory(directory):
                 if os.path.isfile(file_path):
                     os.unlink(file_path)
                 elif os.path.isdir(file_path):
-                    os.rmdir(file_path)
+                    #os.rmdir(file_path)
+                    shutil.rmtree(file_path)
             except Exception as e:
                 print(e)
 
