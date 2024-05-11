@@ -67,3 +67,30 @@ def delete_files_with_extension(directory, extension):
             file_path = os.path.join(directory, file_name)
             # Delete the file
             os.remove(file_path)
+
+def create_or_clear_directory(directory):
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+    else:
+        # Clear the directory if it already exists
+        for filename in os.listdir(directory):
+            file_path = os.path.join(directory, filename)
+            try:
+                if os.path.isfile(file_path):
+                    os.unlink(file_path)
+                elif os.path.isdir(file_path):
+                    os.rmdir(file_path)
+            except Exception as e:
+                print(e)
+
+
+def change_directory(new_directory):
+    try:
+        os.chdir(new_directory)
+        return True
+    except FileNotFoundError:
+        print("Error: Directory not found.")
+        return False
+    except PermissionError:
+        print("Error: Permission denied.")
+        return False

@@ -4,7 +4,14 @@ from benchmarks import *
 
 import multiprocessing
 
-def main(filename='', args='', compile_args='', optTarget=1, Par=[], output_binary = "tuned", flto=0, optPass='-O3'):
+import threading
+import io
+import sys
+
+def tuner(func='', dir='./', args='', compile_args='', optTarget=1, Par=[], output_binary = "tuned", flto=0, optPass='-O3'):
+    change_directory(dir)
+    print('#####################################################################################################')
+    print(f"Optimizig: {func}")
     if len(Par)!=7:
         Par = [260, 3, 50, 5, 30, 50, 0]
     numPar=Par[0]
@@ -95,22 +102,9 @@ def main(filename='', args='', compile_args='', optTarget=1, Par=[], output_bina
                 selected_indices = random.sample(range(0, 270), numPar)
                 selected_indices.sort()
                 # Use apply_async to run the function in a separate process
-                result = pool.apply_async(compile_with_gcc, (gcc_params, selected_indices, optPass, i, optTarget, output_binary, flto, compile_args))
-
-                result_value = 0
-                try:
-                    # Get the result with a timeout of 2 seconds
-                    result_value = result.get(timeout=100)
-                except multiprocessing.TimeoutError:
-                    # Handle the case where the function exceeded the timeout
-                    print("Function execution took too long and was terminated.")
-                    pool.close()
-                    pool.join()
-                    continue
+                compile_with_gcc(gcc_params, selected_indices, optPass, i, optTarget, output_binary, flto, compile_args)
+                result_value = True
                 
-                # Close the pool
-                pool.close()
-                pool.join()
 
                 if result_value:
                     if optTarget == 1:
@@ -250,7 +244,26 @@ def main(filename='', args='', compile_args='', optTarget=1, Par=[], output_bina
         print("Error running 'gcc --help=params':")
         print(e.output)
 
+
+
+def capture_output(func ='', dir='./', compile_args='', optTarget=1, Par='', output_binary="tuned", flto=0, optPass='-O3', output_file='output.txt'):
+    # Redirect stdout to a StringIO object
+    stdout_capture = io.StringIO()
+    sys.stdout = stdout_capture
+
+    # Call the function
+    tuner(func=func, dir=dir, compile_args=compile_args, optTarget=optTarget, Par=Par, output_binary=output_binary, flto=flto, optPass=optPass)
+
+    # Get the printed output and write it to the file
+    printed_output = stdout_capture.getvalue()
+    with open(output_file, 'w') as file:
+        file.write(printed_output)
+
+    # Reset stdout
+    sys.stdout = sys.__stdout__
+
 if __name__ == "__main__":
+    delete_files_with_extension('./', '.txt')
     numPar=255 
     numStop=5
     numIter=70
@@ -259,15 +272,38 @@ if __name__ == "__main__":
     beta=30
     Par_Val=0
     Par = [numPar, numStop, numIter, numTest, alpha, beta, Par_Val]
+
+    optTarget=1
+    output_binary="tuned_"
+    flto=0
+    optPass='-O3'
+
+    processes = []
+    create_or_clear_directory('results')
+    dirResult = 'results'
     for root, dirs, files in os.walk('polybench-c-3.2/linear-algebra/kernels/'):
-        delete_files_with_extension('./', '.s')
+        #delete_files_with_extension('./', '.s')
         func = root.split('/')[-1]
+
         if func!='':
+
             try:
-                print('#####################################################################################################')
-                print(f"Optimizig: {func}")
-                compile_args = f"-I polybench-c-3.2/utilities -I polybench-c-3.2/linear-algebra/kernels/{func} polybench-c-3.2/utilities/polybench.c polybench-c-3.2/linear-algebra/kernels/{func}/{func}.c -DPOLYBENCH_TIME"
-                main(compile_args=compile_args, optTarget=1, Par=Par, output_binary="tuned", flto=0, optPass='-O3')
+                output_file = f"{func}.txt"
+                #output_binary + func + '.txt'
+                
+                compile_args = f"-I ../../polybench-c-3.2/utilities -I ../../polybench-c-3.2/linear-algebra/kernels/{func} ../../polybench-c-3.2/utilities/polybench.c ../../polybench-c-3.2/linear-algebra/kernels/{func}/{func}.c -DPOLYBENCH_TIME"
+                if func == 'cholesky':
+                    compile_args += ' -lm'
+                dir = dirResult+'/'+func
+                create_or_clear_directory(dir)
+                process = multiprocessing.Process(target=capture_output, args=(func, dir, compile_args, optTarget, Par, output_binary+func, flto, optPass, output_file))
+                process.start()
+                processes.append(process)
+                print(f"Thread {len(processes)} started!")
             except:
                 print(f"Unable to optimize {func}")
+    
+    for process in processes:
+        process.join()
     delete_files_with_extension('./', '.s')
+
