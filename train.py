@@ -5,9 +5,9 @@ from tuner import tuner
 
 if __name__ == "__main__":
     numPar=255 
-    numStop=0
-    numIter=70
-    numTest=1
+    numStop=20
+    numIter=20
+    numTest=5
     alpha=30
     beta=30
     Par_Val=0

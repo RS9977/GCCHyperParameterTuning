@@ -88,6 +88,9 @@ def tuner(func='', dir='./', args='', compile_args='', optTarget=1, Par=[], outp
                 print(f"(j: {j}), Explored space: {len(cycles_pre)}, Repetitions: {same_cnt}", end="\r")
             else:
                 print(f"(j: {j}), Explored space: {len(binaries)}, Repetitions: {same_cnt}", end="\r")
+            if same_cnt < numIter:
+                selected_indices_min   = []
+                gcc_params_min         = {}
             for i in range(numIter):
                 '''
                 if j==numOutIter-1:
@@ -125,9 +128,9 @@ def tuner(func='', dir='./', args='', compile_args='', optTarget=1, Par=[], outp
                             else:
                                 binaries.append(preBinary)     
                             gcups = get_gcups_from_command(f"./{output_binary}  {args}", numTest)
-                            if (gcups-GCUPS_max)/GCUPS_max>0.005:
+                            if (GCUPS_max-gcups)/GCUPS_max>0.005:
                                 gcups_main = get_gcups_from_command(f"./{output_binary}  {args}", numTest*10)
-                                if  gcups_main > GCUPS_max_main:
+                                if  gcups_main < GCUPS_max_main:
                                     #gcups = get_gcups_from_command(f"./{output_binary} 'test2.fasta' 'test3.fasta' 1", numTest*10)
                                     #if gcups > GCUPS_max:
                                         if not flto:
@@ -192,9 +195,9 @@ def tuner(func='', dir='./', args='', compile_args='', optTarget=1, Par=[], outp
                             size = get_size_info(output_binary)
                             if size < Size_min:    
                                 gcups = get_gcups_from_command(f"./{output_binary} {args}", numTest)
-                                if (gcups-GCUPS_max)/GCUPS_max>0.005:
+                                if (GCUPS_max-gcups)/GCUPS_max>0.005:
                                     gcups_main = get_gcups_from_command(f"./{output_binary} {args}", numTest*10)
-                                    if  gcups_main > GCUPS_max_main:
+                                    if  gcups_main < GCUPS_max_main:
                                         #gcups = get_gcups_from_command(f"./{output_binary} {args}", numTest*10)
                                         #if gcups > GCUPS_max:
                                         if not flto:

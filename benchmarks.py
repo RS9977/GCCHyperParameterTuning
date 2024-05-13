@@ -16,7 +16,7 @@ def get_gcups_from_command(command, numIter):
                 match = re.search(r'(\d+\.\d+)', result.stdout)
                 if match:
                     gcups = float(match.group(1))
-                    gcups = 1.0/gcups
+                    #gcups = 1.0/gcups
                     GCUPS.append(gcups)
                 else:
                     return None  # No matching line found
