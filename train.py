@@ -7,15 +7,17 @@ if __name__ == "__main__":
     numPar=255 
     numStop=20
     numIter=20
-    numTest=5
-    alpha=30
-    beta=30
+    numTest=1
+    alpha=20
+    beta=20
     Par_Val=0
     Par = [numPar, numStop, numIter, numTest, alpha, beta, Par_Val]
 
-    optTarget=1
+    optTarget=5
     flto=0
     optPass='-O3'
+
+    beys=True
 
     create_or_clear_directory('results')
     dirResult = 'results'
@@ -28,7 +30,7 @@ if __name__ == "__main__":
                 compile_args = f"-I ../../polybench-c-3.2/utilities -I ../../polybench-c-3.2/datamining/{func} ../../polybench-c-3.2/utilities/polybench.c ../../polybench-c-3.2/datamining/{func}/{func}.c -DPOLYBENCH_TIME"
                 if func == 'correlation':
                     compile_args += ' -lm'
-                tuner(func=func, compile_args=compile_args, dir=dir, optTarget=optTarget, Par=Par, output_binary="tuned_"+func, flto=flto, optPass=optPass)
+                tuner(beys=beys, func=func, compile_args=compile_args, dir=dir, optTarget=optTarget, Par=Par, output_binary="tuned_"+func, flto=flto, optPass=optPass)
                 change_directory('../../')
             except:
                 print(f"Unable to optimize {func}")
@@ -41,7 +43,7 @@ if __name__ == "__main__":
                 create_or_clear_directory(dir)
                 compile_args = f"-I ../../polybench-c-3.2/utilities -I ../../polybench-c-3.2/medley/{func} ../../polybench-c-3.2/utilities/polybench.c ../../polybench-c-3.2/medley/{func}/{func}.c -DPOLYBENCH_TIME"
                 
-                tuner(func=func, compile_args=compile_args, dir=dir, optTarget=optTarget, Par=Par, output_binary="tuned_"+func, flto=flto, optPass=optPass)
+                tuner(beys=beys, func=func, compile_args=compile_args, dir=dir, optTarget=optTarget, Par=Par, output_binary="tuned_"+func, flto=flto, optPass=optPass)
                 change_directory('../../')
             except:
                 print(f"Unable to optimize {func}")
@@ -53,7 +55,7 @@ if __name__ == "__main__":
                 dir = dirResult+'/'+func
                 create_or_clear_directory(dir)
                 compile_args = f"-I ../../polybench-c-3.2/utilities -I ../../polybench-c-3.2/stencils/{func} ../../polybench-c-3.2/utilities/polybench.c ../../polybench-c-3.2/stencils/{func}/{func}.c -DPOLYBENCH_TIME"
-                tuner(func=func, compile_args=compile_args, dir=dir, optTarget=optTarget, Par=Par, output_binary="tuned_"+func, flto=flto, optPass=optPass)
+                tuner(beys=beys, func=func, compile_args=compile_args, dir=dir, optTarget=optTarget, Par=Par, output_binary="tuned_"+func, flto=flto, optPass=optPass)
                 change_directory('../../')
             except:
                 print(f"Unable to optimize {func}")
@@ -67,7 +69,7 @@ if __name__ == "__main__":
                 compile_args = f"-I ../../polybench-c-3.2/utilities -I ../../polybench-c-3.2/linear-algebra/solvers/{func} ../../polybench-c-3.2/utilities/polybench.c ../../polybench-c-3.2/linear-algebra/solvers/{func}/{func}.c -DPOLYBENCH_TIME"
                 if func == 'gramschmidt':
                     compile_args += ' -lm'
-                tuner(func=func, compile_args=compile_args, dir=dir, optTarget=optTarget, Par=Par, output_binary="tuned_"+func, flto=flto, optPass=optPass)
+                tuner(beys=beys, func=func, compile_args=compile_args, dir=dir, optTarget=optTarget, Par=Par, output_binary="tuned_"+func, flto=flto, optPass=optPass)
                 change_directory('../../')
             except:
                 print(f"Unable to optimize {func}")
@@ -81,7 +83,7 @@ if __name__ == "__main__":
                 compile_args = f"-I ../../polybench-c-3.2/utilities -I ../../polybench-c-3.2/linear-algebra/kernels/{func} ../../polybench-c-3.2/utilities/polybench.c ../../polybench-c-3.2/linear-algebra/kernels/{func}/{func}.c -DPOLYBENCH_TIME"
                 if func == 'cholesky':
                     compile_args += ' -lm'
-                tuner(func=func, compile_args=compile_args, dir=dir, optTarget=optTarget, Par=Par, output_binary="tuned_"+func, flto=flto, optPass=optPass)
+                tuner(beys=beys, func=func, compile_args=compile_args, dir=dir, optTarget=optTarget, Par=Par, output_binary="tuned_"+func, flto=flto, optPass=optPass)
                 change_directory('../../')
             except:
                 print(f"Unable to optimize {func}")
