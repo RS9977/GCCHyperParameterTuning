@@ -89,7 +89,7 @@ def tuner(beys=True, func='', dir='./', args='', compile_args='', optTarget=1, P
         #subprocess.check_call(gcc_command)
         #GCUPS_max = get_gcups_from_command('./SWAVX',numTest)
         if beys:
-            gcc_params_min = optimize_compiler_parameters(numIter=numIter, output_binary=output_binary,  numTest=numTest, thresholds=[GCUPS_max_main], compile_args=compile_args, optTarget=optTarget, optPass=optPass)
+            gcc_params_min = optimize_compiler_parameters(numIter=numIter, output_binary=output_binary,  numTest=numTest*5, thresholds=[GCUPS_max_main], compile_args=compile_args, optTarget=optTarget, optPass=optPass)
             selected_indices_min = [x for x in range(255)]
 
         else:

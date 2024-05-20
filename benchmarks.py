@@ -3,6 +3,7 @@ import re
 import os
 import subprocess
 from utils import *
+import statistics
 
 def get_gcups_from_command(command, numIter):
     GCUPS = []
@@ -121,3 +122,28 @@ def get_size_info(binary_name):
         return int(output.split()[0])
     except:
         print(f"Pattern not found in the command output for {binary_name}")
+
+
+def run_hyperfine_and_extract_time(binary_output):
+    def run_hyperfine():
+        result = subprocess.run(['hyperfine', './' + binary_output], capture_output=True, text=True)
+        match = re.search(r'Time \(mean ± σ\):\s+(\d+\.\d+) ms ±\s+(\d+\.\d+) ms', result.stdout)
+        if match:
+            mean_time = float(match.group(1))
+            sigma_time = float(match.group(2))
+            return mean_time, sigma_time
+        else:
+            raise ValueError("Output format not recognized")
+
+    times = []
+    for _ in range(10):
+        try:
+            mean_time, sigma_time = run_hyperfine()
+        except:
+            continue
+        times.append(mean_time)
+        if sigma_time < 0.1 * mean_time:
+            return mean_time
+
+    # If condition was not met after 10 runs, return the average of all 10 runs
+    return statistics.mean(times)

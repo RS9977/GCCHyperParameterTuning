@@ -3,6 +3,7 @@ import numpy as np
 import os
 
 import shutil
+import subprocess
 
 
 def compute_mean_and_filter(data_list):
@@ -97,3 +98,53 @@ def change_directory(new_directory):
     except PermissionError:
         print("Error: Permission denied.")
         return False
+    
+
+
+
+def get_gcc_optimization_passes():
+    try:
+        # Run the command and capture the output
+        output = subprocess.check_output(['gcc', '--help=optim'], universal_newlines=True)
+        
+        # Split the output by lines
+        lines = output.split('\n')
+
+        # Find the line containing the keyword "Optimization passes available"
+        keyword = 'The following options control optimizations:'
+        start_index = None
+        for i, line in enumerate(lines):
+            if keyword in line:
+                start_index = i
+                break
+        
+        if start_index is not None:
+            # Extract optimization passes
+            optimization_passes = ['-O1', '-O2', '-O3']
+            for line in lines[start_index+1:]:
+                # Optimization passes are indented
+                if line.strip().startswith('-'):
+                    optPass = line.split()[0]
+                    #if optPass not in ['=', '-O', '-fassume-phsa', '-fhandle-exceptions']:
+                    if '=' not in optPass and '<number>' not in optPass and '-Wmissing-profile' not in optPass and '-fassume-phsa' not in optPass and '-fhandle-exceptions' not in optPass and '-fipa' not in optPass:
+                        optimization_passes.append(optPass)
+            return optimization_passes
+        else:
+            print("Keyword '{}' not found in output.".format(keyword))
+            return None
+    except subprocess.CalledProcessError as e:
+        print("Error:", e)
+        return None
+    
+def generate_periodic_function(n, max_val=0.9, min_val=0.1):
+    # Calculate amplitude and offset
+    amplitude = (max_val - min_val) / 2
+    offset = (max_val + min_val) / 2
+    
+    # Generate n values over two cycles (2 * 2 * pi)
+    x = np.linspace(0, 2 * 2 * np.pi, n)
+    
+    # Create the sinusoidal values with the specified amplitude and offset
+    y = amplitude * np.sin(x) + offset
+    
+    return y.tolist()

@@ -54,7 +54,7 @@ def compile_and_evaluate(parameters, output_binary="tuned", numTest=20, compile_
     #included_params = [param for param, include in parameters if include]
     
     # Build the compiler command with the selected parameters
-    compiler_command = "gcc -o " + output_binary + ' ' + optPass + ' ' + compile_args
+    compiler_command = "gcc -Werror -w -o " + output_binary + ' ' + optPass + ' ' + compile_args
 
     i = 0
     for param_name, param_value in parameters.items():
@@ -72,7 +72,14 @@ def compile_and_evaluate(parameters, output_binary="tuned", numTest=20, compile_
         return {"GCUPS": 1e7}#, "GCUPS": (-1e7, 1e7)}  # Return negative infinity in case of compilation failure
     
     # Measure runtime using your method
-    if optTarget==1:
+    if optTarget == 0:
+        #print('##########################################################################################')
+        #print("1")
+        GCUPS = run_hyperfine_and_extract_time(output_binary+'.out')
+        if GCUPS <= 1:
+            return 10000.0
+        GCUPS /= 1000.0 
+    elif optTarget==1:
         GCUPS = get_gcups_from_command(f"./{output_binary}", numTest)
     else:
         GCUPS = get_size_info(output_binary)

@@ -6,7 +6,7 @@ from tuner import tuner
 if __name__ == "__main__":
     numPar=255 
     numStop=20
-    numIter=20
+    numIter=100
     numTest=1
     alpha=20
     beta=20
@@ -15,7 +15,7 @@ if __name__ == "__main__":
 
     optTarget=5
     flto=0
-    optPass='-O3'
+    optPass='-Os'
 
     beys=True
 
