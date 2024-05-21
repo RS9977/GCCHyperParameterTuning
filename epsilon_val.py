@@ -1,5 +1,27 @@
 from benchmarks import *
 from Beysian_opt import optimize_compiler_parameters
+import matplotlib.pyplot as plt
+
+def normalize_and_plot(dictionary):
+    # Normalize the dictionary values
+    values = np.array(list(dictionary.values()))
+    min_val = min(values)
+    max_val = max(values)
+    normalized_values = [(val - min_val) / (max_val - min_val) for val in values]
+    
+    # Sort the normalized values from highest to lowest
+    sorted_values = sorted(normalized_values, reverse=True)
+    threshold_dict = {key: normalized_value > 0.5 for key, normalized_value in zip(dictionary.keys(), normalized_values)}
+    # Plot the sorted values
+    plt.figure(figsize=(40, 5))
+    plt.plot(sorted_values, marker='o', linestyle='-')
+    plt.title('Normalized and Sorted Values')
+    plt.xlabel('Index')
+    plt.ylabel('Normalized Value')
+    plt.grid(True)
+    plt.savefig('out_val.png')
+    return threshold_dict, zip(dictionary.keys(), normalized_values)
+
 def process_and_sort_file(input_filename, output_filename, threshold):
     try:
         # Initialize an empty dictionary
@@ -15,7 +37,7 @@ def process_and_sort_file(input_filename, output_filename, threshold):
                 # Check if the line starts with '-'
                 if line.startswith('-'):
                     # Split into key and value, keeping the '-'
-                    parts = line.strip().split(maxsplit=1)
+                    parts = line.strip().split()
                     if len(parts) == 2:
                         key, value = parts
                         try:
@@ -25,9 +47,20 @@ def process_and_sort_file(input_filename, output_filename, threshold):
                             data_dict[key] = value
                         except ValueError:
                             print(f"Skipping line with invalid float value: {line.strip()}")
+                    else:
+                        
+                        try:
+                            key = ' '.join(parts[0:-1])
+                            value = parts[-1]
+                            value = float(value)
+                            data_dict[key] = value
+                        except ValueError:
+                            print(f"Skipping line with invalid float value: {line.strip()}")
 
         # Sort the dictionary by value in descending order
-        sorted_data = sorted(data_dict.items(), key=lambda item: item[1], reverse=True)
+        _, norm_list = normalize_and_plot(data_dict)
+        sorted_data = sorted(norm_list, key=lambda item: item[1], reverse=True)
+        
 
         # Open the output file for writing
         with open(output_filename, 'w') as outfile:
@@ -39,7 +72,7 @@ def process_and_sort_file(input_filename, output_filename, threshold):
         concatenated_keys = ' '.join(key for key, value in sorted_data if value > threshold)
         
         print(f"Data successfully processed, sorted, and saved to {output_filename}")
-        print(f"{concatenated_keys}")
+        #print(f"{concatenated_keys}")
         
         return concatenated_keys
         
@@ -54,7 +87,7 @@ def compile_and_evaluate(parameters, output_binary="tuned", numTest=20, compile_
     
     # Build the compiler command with the selected parameters
     if param_tune:
-        parameters = optimize_compiler_parameters(numIter=100, output_binary=output_binary,  numTest=numTest*5, compile_args=compile_args, optTarget=optTarget, optPass=optPass)
+        parameters = optimize_compiler_parameters(numIter=20, output_binary=output_binary,  numTest=numTest*5, compile_args=compile_args, optTarget=optTarget, optPass=optPass)
 
     compiler_command = "gcc -Werror -w "  + optPass + ' ' + compile_args
 
@@ -76,6 +109,8 @@ def compile_and_evaluate(parameters, output_binary="tuned", numTest=20, compile_
     
     # Measure runtime using your method
     if optTarget == 0:
+        if get_gcups_from_command(f"./{output_binary}", 1)<=0.001:
+            return 1e7
         GCUPS = run_hyperfine_and_extract_time(output_binary+'.out')/1000.0
         if GCUPS == 0.0:
             return 1e7
@@ -91,15 +126,17 @@ def compile_and_evaluate(parameters, output_binary="tuned", numTest=20, compile_
     
     return GCUPS#{"size": (size, 0.0)}#, "GCUPS": (GCUPS, 2)}
 
+if __name__ == "__main__":
+    concatenated_keys = process_and_sort_file('out.txt', 'out_processed.txt', 0.58)
+    compile_args = '-I polybench-c-3.2/utilities -I polybench-c-3.2/linear-algebra/kernels/atax polybench-c-3.2/utilities/polybench.c polybench-c-3.2/linear-algebra/kernels/atax/atax.c -DPOLYBENCH_TIME'
 
-concatenated_keys = process_and_sort_file('out.txt', 'out_processed.txt', 0.8)
-compile_args = '-I polybench-c-3.2/utilities -I polybench-c-3.2/linear-algebra/kernels/atax polybench-c-3.2/utilities/polybench.c polybench-c-3.2/linear-algebra/kernels/atax/atax.c -DPOLYBENCH_TIME'
 
-#print(concatenated_keys)
-print('-----------------------------------------------------------------------')
-init  = compile_and_evaluate({}, output_binary="tuned", numTest=20, compile_args=compile_args, optTarget=0, optPass='-O3', param_tune=False)*1000.0
-final = compile_and_evaluate({}, output_binary="tuned", numTest=20, compile_args=compile_args+' '+concatenated_keys, optTarget=0, optPass='', param_tune=False)*1000.0
-print('Init:', end=' ')
-print(init)
-print('Final:', end=' ')
-print(final)
+    #print(concatenated_keys)
+    print('-----------------------------------------------------------------------')
+    init  = compile_and_evaluate({}, output_binary="tuned", numTest=20, compile_args=compile_args, optTarget=0, optPass='-Ofast', param_tune=False)*1000.0
+    final = compile_and_evaluate({}, output_binary="tuned", numTest=20, compile_args=compile_args+' '+concatenated_keys, optTarget=0, optPass='', param_tune=False)*1000.0
+    print('Init:', end=' ')
+    print(init)
+    print('Final:', end=' ')
+    print(final)
+

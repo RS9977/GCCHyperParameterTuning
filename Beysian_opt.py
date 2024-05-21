@@ -77,8 +77,7 @@ def compile_and_evaluate(parameters, output_binary="tuned", numTest=20, compile_
         #print("1")
         GCUPS = run_hyperfine_and_extract_time(output_binary+'.out')
         if GCUPS <= 1:
-            return 10000.0
-        GCUPS /= 1000.0 
+            return 1e7
     elif optTarget==1:
         GCUPS = get_gcups_from_command(f"./{output_binary}", numTest)
     else:
@@ -99,7 +98,7 @@ def define_parameter_space(param_dict):
     return parameters
 
 # Function to optimize the compiler parameters
-def optimize_compiler_parameters(numIter=10, output_binary="tuned", numTest=20, thresholds=[21104,5], compile_args='', optTarget=1, optPass='-O3'):
+def optimize_compiler_parameters(numIter=10, output_binary="tuned", numTest=20, thresholds=[21104,5], compile_args='', optTarget=0, optPass='-O3'):
     # Define the parameter space
     param_dict = parse_gcc_params()
     parameters = define_parameter_space(param_dict)

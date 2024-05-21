@@ -102,7 +102,7 @@ def change_directory(new_directory):
 
 
 
-def get_gcc_optimization_passes():
+def get_gcc_optimization_passes_2():
     try:
         # Run the command and capture the output
         output = subprocess.check_output(['gcc', '--help=optim'], universal_newlines=True)
@@ -120,13 +120,14 @@ def get_gcc_optimization_passes():
         
         if start_index is not None:
             # Extract optimization passes
-            optimization_passes = ['-O1', '-O2', '-O3']
+            #optimization_passes = ['-O1', '-O2', '-O3']
+            optimization_passes = []
             for line in lines[start_index+1:]:
                 # Optimization passes are indented
                 if line.strip().startswith('-'):
                     optPass = line.split()[0]
                     #if optPass not in ['=', '-O', '-fassume-phsa', '-fhandle-exceptions']:
-                    if '=' not in optPass and '<number>' not in optPass and '-Wmissing-profile' not in optPass and '-fassume-phsa' not in optPass and '-fhandle-exceptions' not in optPass and '-fipa' not in optPass:
+                    if '=' not in optPass and '<number>' not in optPass and '-Wmissing-profile' not in optPass and '-fassume-phsa' not in optPass and '-fhandle-exceptions' not in optPass and '-fipa' not in optPass and '-fsingle-precision-constant' not in optPass and '-O' not in optPass:
                         optimization_passes.append(optPass)
             return optimization_passes
         else:
@@ -135,6 +136,22 @@ def get_gcc_optimization_passes():
     except subprocess.CalledProcessError as e:
         print("Error:", e)
         return None
+    
+def get_gcc_optimization_passes():
+    file_path = 'optimization_list.txt'
+    lines = []
+    try:
+        with open(file_path, 'r') as file:
+            lines = file.readlines()
+            # Removing the newline characters from each line
+            lines = [line.strip() for line in lines]
+    except FileNotFoundError:
+        print(f"Error: The file at {file_path} was not found.")
+    except Exception as e:
+        print(f"An error occurred: {e}")
+    
+    return lines
+
     
 def generate_periodic_function(n, max_val=0.9, min_val=0.1):
     # Calculate amplitude and offset
